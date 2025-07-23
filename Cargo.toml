@@ -1,0 +1,29 @@
+[package]
+name = "simplex-chat-api"
+version = "0.1.0"
+description = "WebAssembly-compatible simplex.chat client socket library"
+repository = "https://github.com/reino08/simplex-chat-rs"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+keywords = ["simplex", "simplex.chat"]
+categories = ["api-bindings", "wasm"]
+edition = "2024"
+
+[dependencies]
+async-lock = "3.4.0"
+chrono = { version = "0.4.41", features = ["serde"] }
+futures = "0.3.31"
+log = "0.4.27"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+url = "2.5.4"
+yawc = "0.2.4"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+rustyline = "16.0"
+tokio = { version = "1.0", features = [
+    "macros",
+    "rt-multi-thread",
+], default-features = false }
+tracing-subscriber = "0.3.19"
