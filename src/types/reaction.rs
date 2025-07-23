@@ -1,4 +1,4 @@
-use crate::types::{GroupMembership, MessageData, MessageInfo};
+use crate::types::{MessageData, MessageDirection, MessageInfo};
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -11,18 +11,11 @@ pub struct Reaction {
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReactionInfo {
-    pub chat_dir: ReactionDirection,
+    pub chat_dir: MessageDirection,
     #[serde(rename = "chatItem")]
     pub message: MessageData,
     pub sent_at: chrono::DateTime<chrono::Utc>,
     pub reaction: ReactionData,
-}
-
-#[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type", rename_all_fields = "camelCase")]
-pub enum ReactionDirection {
-    #[serde(rename = "groupRcv")]
-    GroupReceive { group_member: GroupMembership },
 }
 
 #[derive(Debug, serde::Deserialize)]

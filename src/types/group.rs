@@ -9,7 +9,7 @@ pub struct GroupInfo {
     pub group_profile: serde_json::Value,
     pub local_alias: String,
     pub full_group_preferences: Box<GroupPreferences>,
-    pub membership: Box<GroupMembership>,
+    pub membership: Box<GroupMember>,
     pub chat_settings: serde_json::Value, // "enableNtfs": "all", "favorite": false
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
@@ -36,7 +36,7 @@ pub struct GroupPreferences {
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct GroupMembership {
+pub struct GroupMember {
     pub group_member_id: usize,
     pub group_id: usize,
     pub member_id: String,

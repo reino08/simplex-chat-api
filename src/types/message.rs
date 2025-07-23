@@ -1,4 +1,4 @@
-use crate::types::{Contact, GroupInfo, ReactionData};
+use crate::types::{Contact, GroupInfo, GroupMember, ReactionData};
 
 #[derive(Debug, serde::Deserialize)]
 pub struct Message {
@@ -32,14 +32,14 @@ pub struct MessageData {
 }
 
 #[derive(Debug, serde::Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all_fields = "camelCase")]
 pub enum MessageDirection {
     #[serde(rename = "directRcv")]
     DirectReceive,
     #[serde(rename = "directSnd")]
     DirectSend,
     #[serde(rename = "groupRcv")]
-    GroupReceive,
+    GroupReceive { group_member: GroupMember },
     #[serde(rename = "groupSnd")]
     GroupSend,
 }

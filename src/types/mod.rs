@@ -13,7 +13,7 @@ pub mod errors;
 
 pub use contact::{ChatSettings, Connection, Contact, ContactFullLink, ContactLink, VersionRange};
 pub use file::{FileDescriptor, FileTransfer};
-pub use group::{GroupInfo, GroupMemberStatus, GroupMembership, GroupPreferences, ShortGroupInfo};
+pub use group::{GroupInfo, GroupMember, GroupMemberStatus, GroupPreferences, ShortGroupInfo};
 pub use merged_preferences::{
     MergedPreference, MergedPreferenceEnabled, MergedPreferenceUser, MergedPreferences,
 };
@@ -23,6 +23,6 @@ pub use message::{
 };
 pub use preferences::{Permission, PermissionOption, Preferences};
 pub use profile::Profile;
-pub use reaction::{Reaction, ReactionData, ReactionDirection, ReactionInfo};
+pub use reaction::{Reaction, ReactionData, ReactionInfo};
 pub use terminal_event::TerminalEvent;
 pub use user::{User, UserWithUnreadCount};
