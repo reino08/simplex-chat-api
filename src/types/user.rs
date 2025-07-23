@@ -21,7 +21,7 @@ pub struct User {
     #[serde(rename = "sendRcptsSmallGroups")]
     pub send_receipts_small_groups: bool,
     /// Timestamp of the last time the profile has been updated
-    pub user_member_profile_updated_at: chrono::DateTime<chrono::Utc>,
+    pub user_member_profile_updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 /// A wrapper around the [`User`] type but with the amount of unread notifications.
