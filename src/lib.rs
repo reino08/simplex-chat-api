@@ -10,4 +10,4 @@ pub mod stream;
 pub mod types;
 
 mod client;
-pub use client::{Client, ClientBuilder};
+pub use client::{Client, ClientBuilder, ClientError};

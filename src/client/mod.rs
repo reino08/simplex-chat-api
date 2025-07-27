@@ -1,10 +1,7 @@
 mod builder;
 pub use builder::ClientBuilder;
 
-use std::{
-    pin::Pin,
-    sync::atomic::{AtomicUsize, Ordering},
-};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use futures::{
     SinkExt as _,
@@ -13,7 +10,8 @@ use futures::{
 
 use crate::{
     command,
-    stream::{Request, RequestError, Response},
+    stream::{Request, RequestError, Response, ResponseData},
+    types::{Contact, User},
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -25,7 +23,15 @@ type SocketTx = dyn futures::Sink<Request, Error = RequestError> + Send;
 pub struct Client {
     counter: AtomicUsize,
     channel_tx: UnboundedSender<(String, oneshot::Sender<Response>)>,
-    socket_tx: async_lock::Mutex<Pin<Box<SocketTx>>>,
+    socket_tx: async_lock::Mutex<std::pin::Pin<Box<SocketTx>>>,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ClientError {
+    #[error("an error occurred while making a request: {0}")]
+    RequestError(#[from] RequestError),
+    #[error("an unexpected output was received")]
+    UnexpectedResponse(Response),
 }
 
 impl Client {
@@ -58,7 +64,20 @@ impl Client {
         self.send_raw(format!("{dest} {}", message.content)).await
     }
 
-    pub async fn contacts(&self) -> Result<Response, RequestError> {
-        self.send_raw("/contacts".to_owned()).await
+    /// Returns the active profile.
+    pub async fn active_user(&self) -> Result<User, ClientError> {
+        let response = self.send_raw("/user".to_owned()).await?;
+        match response.data {
+            ResponseData::ActiveUser { user } => Ok(user),
+            _ => Err(ClientError::UnexpectedResponse(response)),
+        }
+    }
+
+    pub async fn contacts(&self) -> Result<Vec<Contact>, ClientError> {
+        let response = self.send_raw("/contacts".to_owned()).await?;
+        match response.data {
+            ResponseData::ContactsList { contacts, .. } => Ok(contacts),
+            _ => Err(ClientError::UnexpectedResponse(response)),
+        }
     }
 }
