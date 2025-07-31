@@ -74,3 +74,9 @@ pub struct ShortGroupInfo {
 pub enum GroupMemberStatus {
     Connected,
 }
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupMemberCount {
+    pub current_members: usize,
+}

@@ -11,7 +11,7 @@ use futures::{
 use crate::{
     command,
     stream::{Request, RequestError, Response, ResponseData},
-    types::{Contact, User, UserWithUnreadCount},
+    types::{Chat, Contact, GroupInfo, GroupMemberCount, User, UserWithUnreadCount},
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -20,12 +20,13 @@ type SocketTx = dyn futures::Sink<Request, Error = RequestError>;
 type SocketTx = dyn futures::Sink<Request, Error = RequestError> + Send;
 
 macro_rules! define_getter {
-    ($name:ident, $ret: ty, $command:expr, $arm:pat => $res:expr $(, $(#[$meta:meta])*)?) => {
+    ($(#[$meta:meta])* $name:ident, $ret: ty, $command:expr, $arm:pat => $res:expr) => {
+        $(#[$meta])*
         pub async fn $name(&self) -> Result<$ret, ClientError> {
             let response = self.send_raw($command.to_owned()).await?;
             match response.data {
                 $arm => $res,
-                _ => Err(ClientError::UnexpectedResponse(response)),
+                _ => Err(ClientError::UnexpectedResponse(Box::new(response))),
             }
         }
     };
@@ -36,7 +37,7 @@ pub enum ClientError {
     #[error("an error occurred while making a request: {0}")]
     RequestError(#[from] RequestError),
     #[error("an unexpected output was received")]
-    UnexpectedResponse(Response),
+    UnexpectedResponse(Box<Response>),
 }
 
 /// A [`ClientBuilder`] which has been started with the [`ClientBuilder::run`] method
@@ -76,13 +77,29 @@ impl Client {
         self.send_raw(format!("{dest} {}", message.content)).await
     }
 
-    define_getter!(users, Vec<UserWithUnreadCount>, "/users", ResponseData::UsersList { users } => Ok(users),
-        /// Returns all local profiles along with their amount of unread messages.
+    define_getter!(
+        /// Gets all chats, including contacts, contact requests, groups, and local notes.
+        chats, Vec<Chat>, "/chats", ResponseData::Chats { chats, .. } => Ok(chats)
     );
 
-    define_getter!(active_user, User, "/user", ResponseData::ActiveUser { user } => Ok(user),
-        /// Returns the active profile.
+    define_getter!(
+        // TODO: determine if it returns contact requests too
+        /// Gets only contacts. See [`Self::chats`] for all chats.
+        contacts, Vec<Contact>, "/contacts", ResponseData::ContactsList { contacts, .. } => Ok(contacts)
     );
 
-    define_getter!(contacts, Vec<Contact>, "/contacts", ResponseData::ContactsList { contacts, .. } => Ok(contacts));
+    define_getter!(
+        /// Gets only groups. See [`Self::chats`] for all chats.
+        groups, Vec<(GroupInfo, GroupMemberCount)>, "/groups", ResponseData::GroupsList { groups, .. } => Ok(groups)
+    );
+
+    define_getter!(
+        /// Gets the active profile.
+        active_user, User, "/user", ResponseData::ActiveUser { user } => Ok(user)
+    );
+
+    define_getter!(
+        /// Gets all local profiles along with their total amount of unread messages.
+        users, Vec<UserWithUnreadCount>, "/users", ResponseData::UsersList { users } => Ok(users)
+    );
 }

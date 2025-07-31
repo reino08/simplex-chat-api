@@ -1,6 +1,6 @@
 use crate::types::{
-    Contact, ContactLink, FileDescriptor, FileTransfer, Message, Reaction, TerminalEvent, User,
-    UserWithUnreadCount, errors::ChatError,
+    Chat, Contact, ContactLink, FileDescriptor, FileTransfer, GroupInfo, GroupMemberCount, Message,
+    Reaction, TerminalEvent, User, UserWithUnreadCount, errors::ChatError,
 };
 
 #[derive(Debug, serde::Deserialize)]
@@ -44,6 +44,9 @@ pub enum ResponseData {
     ChatCommandError {
         chat_error: ChatError,
     },
+    ChatError {
+        chat_error: ChatError,
+    },
     /// ### `/h`, `/help`
     /// Does not contain useful information.
     ChatHelp {
@@ -62,6 +65,11 @@ pub enum ResponseData {
         user: User,
         chat_item: Message,
     },
+    /// ### `/cs`, `/chats`
+    /// All of the chats (contacts + groups) for the user.
+    Chats {
+        chats: Vec<Chat>,
+    },
     /// ### `/_stop`
     /// The client was stopped and the process terminated.
     ChatStopped,
@@ -70,9 +78,21 @@ pub enum ResponseData {
         user: User,
         contacts: Vec<Contact>,
     },
+    ContactsDisconnected {
+        server: String,
+        contact_refs: Vec<serde_json::Value>,
+    },
+    ContactsSubscribed {
+        server: String,
+        contact_refs: Vec<serde_json::Value>,
+    },
     ContactSubSummary {
         user: User,
         contact_subscriptions: Vec<serde_json::Value>,
+    },
+    GroupsList {
+        user: User,
+        groups: Vec<(GroupInfo, GroupMemberCount)>,
     },
     NewChatItems {
         user: User,

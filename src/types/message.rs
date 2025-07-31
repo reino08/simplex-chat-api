@@ -1,4 +1,4 @@
-use crate::types::{Contact, GroupInfo, GroupMember, ReactionData};
+use crate::types::{Contact, GroupInfo, GroupMember, NoteFolder, ReactionData};
 
 #[derive(Debug, serde::Deserialize)]
 pub struct Message {
@@ -17,9 +17,12 @@ pub struct Message {
 pub enum MessageInfo {
     Direct { contact: Box<Contact> },
     Group { group_info: Box<GroupInfo> },
+    ContactRequest { contact_request: serde_json::Value },
+    Local { note_folder: NoteFolder },
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MessageData {
     #[serde(rename = "chatDir")]
     pub direction: MessageDirection,
@@ -27,6 +30,7 @@ pub struct MessageData {
     pub content: MessageContent,
     /// Key: mentioned member's display name
     pub mentions: std::collections::HashMap<String, MessageMention>,
+    pub formatted_text: Option<Vec<FormattedText>>,
     pub reactions: Vec<MessageReaction>,
     pub file: Option<MessageFile>,
 }
@@ -39,7 +43,7 @@ pub enum MessageDirection {
     #[serde(rename = "directSnd")]
     DirectSend,
     #[serde(rename = "groupRcv")]
-    GroupReceive { group_member: GroupMember },
+    GroupReceive { group_member: Box<GroupMember> },
     #[serde(rename = "groupSnd")]
     GroupSend,
 }
@@ -57,7 +61,7 @@ pub struct MessageMeta {
     #[serde(rename = "itemStatus")]
     pub status: MessageMetaStatus,
     #[serde(rename = "itemSharedMsgId")]
-    pub shared_id: String,
+    pub shared_id: Option<String>,
     #[serde(rename = "itemEdited")]
     pub edited: bool,
     pub user_mention: bool,
@@ -87,18 +91,28 @@ pub enum MessageMetaStatus {
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct MessageContent {
-    pub r#type: MessageContentType,
-    #[serde(rename = "msgContent")]
-    pub content: MessageContentData,
-}
-
-#[derive(Debug, serde::Deserialize)]
-pub enum MessageContentType {
-    #[serde(rename = "rcvMsgContent")]
-    SendMessageContent,
+#[serde(tag = "type", rename_all_fields = "camelCase")]
+pub enum MessageContent {
+    #[serde(rename = "sndGroupFeature")]
+    SendGroupFeature {
+        group_feature: String,
+        preference: serde_json::Value,
+    },
     #[serde(rename = "sndMsgContent")]
-    RecieveMessageContent,
+    SendMessageContent {
+        #[serde(rename = "msgContent")]
+        content: MessageContentData,
+    },
+    #[serde(rename = "rcvMsgContent")]
+    RecieveMessageContent {
+        #[serde(rename = "msgContent")]
+        content: MessageContentData,
+    },
+    #[serde(rename = "rcvDirectEvent")]
+    RecieveDirectEvent {
+        #[serde(rename = "rcvDirectEvent")]
+        event: ReceiveDirectEvent,
+    },
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -170,4 +184,26 @@ pub enum MessageFileStatus {
 #[serde(rename_all = "camelCase")]
 pub enum MessageFileProtocol {
     Xftp,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct FormattedText {
+    pub format: Option<FormattedTextFormat>,
+    pub text: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(
+    tag = "type",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum FormattedTextFormat {
+    Colored { color: String },
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum ReceiveDirectEvent {
+    ContactDeleted,
 }

@@ -1,10 +1,18 @@
 use futures::StreamExt;
-use simplex_chat_api::{command::Recipient, stream::ResponseData, types::MessageInfo};
+use simplex_chat_api::{
+    command::Recipient,
+    stream::ResponseData,
+    types::{MessageContent, MessageInfo},
+};
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt().init();
+    async_main().await;
+}
 
+// Split into another function because the tokio::main proc macro messes with LSP
+async fn async_main() {
     let (client, mut events, background) =
         simplex_chat_api::ClientBuilder::new("ws://localhost:5225".try_into().expect("valid url"))
             .await
@@ -26,9 +34,15 @@ async fn main() {
                         MessageInfo::Group { group_info } => {
                             Recipient::Group(group_info.local_display_name)
                         }
+                        _ => continue,
                     };
 
-                    let Ok(number) = item.data.content.content.text().parse::<f64>() else {
+                    let MessageContent::RecieveMessageContent { content } = item.data.content
+                    else {
+                        continue;
+                    };
+
+                    let Ok(number) = content.text().parse::<f64>() else {
                         continue;
                     };
 

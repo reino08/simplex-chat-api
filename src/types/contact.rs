@@ -8,7 +8,7 @@ pub struct Contact {
     pub local_display_name: String,
     pub profile: Profile,
     #[serde(rename = "activeConn")]
-    pub active_connection: Connection,
+    pub active_connection: Option<Connection>,
     pub contact_used: bool,
     pub contact_status: String,
     pub chat_settings: ChatSettings,
@@ -94,4 +94,23 @@ pub struct ContactLink {
 pub struct ContactFullLink {
     #[serde(rename = "connFullLink")]
     pub full_link: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ContactRequest {
+    pub contact_request_id: usize,
+    pub agent_invitation_id: String,
+    #[serde(rename = "userContactLinkId_")]
+    pub user_contact_link_id: usize,
+    #[serde(rename = "cReqChatVRange")]
+    pub version_range: VersionRange,
+    pub local_display_name: String,
+    pub profile_id: usize,
+    pub profile: Profile,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    #[serde(rename = "xContactId")]
+    pub contact_id: String,
+    pub pq_support: bool,
 }
